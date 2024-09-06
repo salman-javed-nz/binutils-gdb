@@ -2514,6 +2514,7 @@ coff_arm_link_output_has_begun (bfd * sub, struct coff_final_link_info * info)
 	  || sub == coff_arm_hash_table (info->info)->bfd_of_glue_owner);
 }
 
+#if 0
 static bool
 coff_arm_final_link_postscript (bfd * abfd ATTRIBUTE_UNUSED,
 				struct coff_final_link_info * pfinfo)
@@ -2534,6 +2535,7 @@ coff_arm_final_link_postscript (bfd * abfd ATTRIBUTE_UNUSED,
 
   return bfd_arm_update_notes (abfd, ARM_NOTE_SECTION);
 }
+#endif
 
 #ifndef bfd_pe_print_pdata
 #define bfd_pe_print_pdata	NULL
