@@ -400,11 +400,14 @@ static const autofilter_entry_type autofilter_objlist[] =
   { STRING_COMMA_LEN ("crt0.o") },
   { STRING_COMMA_LEN ("crt1.o") },
   { STRING_COMMA_LEN ("crt2.o") },
+  { STRING_COMMA_LEN ("crt3.o") },
   { STRING_COMMA_LEN ("dllcrt1.o") },
   { STRING_COMMA_LEN ("dllcrt2.o") },
+  { STRING_COMMA_LEN ("dllcrt3.o") },
   { STRING_COMMA_LEN ("gcrt0.o") },
   { STRING_COMMA_LEN ("gcrt1.o") },
   { STRING_COMMA_LEN ("gcrt2.o") },
+  { STRING_COMMA_LEN ("gcrt3.o") },
   { STRING_COMMA_LEN ("crtbegin.o") },
   { STRING_COMMA_LEN ("crtend.o") },
   { NULL, 0 }
@@ -3549,6 +3552,7 @@ pe_implied_import_dll (const char *filename)
       bfd_vma secptr1 = secptr + 40 * i;
       bfd_vma vsize = pe_get32 (dll, secptr1 + 8, &fail);
       bfd_vma vaddr = pe_get32 (dll, secptr1 + 12, &fail);
+      bfd_vma rdptr = pe_get32 (dll, secptr1 + 20, &fail);
       bfd_vma flags = pe_get32 (dll, secptr1 + 36, &fail);
       char sec_name[9];
 
@@ -3588,7 +3592,21 @@ pe_implied_import_dll (const char *filename)
 		    __func__, sec_name, (unsigned long) vaddr,
 		    (unsigned long) (vaddr + vsize), (unsigned long) flags);
 	}
+      else if (strcmp (sec_name, ".edata") == 0)
+        {
+	  export_size = vsize;
+	  export_rva = vaddr;
+	  expptr = rdptr;
+
+	  if (pe_dll_extra_pe_debug)
+	    printf ("%s %s: 0x%08lx-0x%08lx (0x%08lx) fileptr 0x%08lx\n",
+	      __FUNCTION__, sec_name, (unsigned long) vaddr,
+	      (unsigned long) (vaddr + vsize), (unsigned long) flags, expptr);
+	}
     }
+
+   if (export_size < 40) /* Matches the offset+size of ordinals */
+     return false;
 
   expdata = xmalloc (export_size);
   if (bfd_seek (dll, expptr, SEEK_SET) != 0
